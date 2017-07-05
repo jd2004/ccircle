@@ -1,5 +1,3 @@
-
-import worlds
 # Your solution goes in this file!
 
 '''
@@ -17,8 +15,6 @@ import worlds
             True iff cat is facing east
         cat.isFacingW() -> Bool
             True iff cat is facing west
-        cat.smellsPizza() -> Bool
-            True iff the cat is right in front of the pizza (and is facing it)
 
         Just a refresher...:
 
@@ -41,30 +37,49 @@ import worlds
             Instructs the cat to turn right / clockwise
         cat.walk() -> None
             Instructs the cat to walk in the direction it is facing
-
-    NOTE: You can only call cat.walk() ONCE per call to moveTowardPizza!!
 '''
 
+
 class Solution:
+
     def __init__(self):
         # If you want to keep track of any variables, you can initialize them here using self.var = value
         # e.g.
-        #   self.moveCount = 0
+        self.moveCount = 0
         pass
 
-    # Choose your level here: 'worlds.easy()', 'worlds.medium()', or 'worlds.hard()'!
+    # Choose your level here: 'easy', 'medium', or 'hard'!
     def getLevel(self):
-        return worlds.hard()
+        return 'easy'
 
     # Smaller pause time = faster simulation
     def getPauseTime(self):
         return 0.5
 
+
     # Your solution!
     def moveTowardPizza(self, cat):
+        def checkPath():
+            if self.moveCount==0:
+                cat.turnRight()
+                self.moveCount=1
+            if cat.isBlocked():
+                cat.turnLeft
+                self.moveCount=0
+
         # Wheeeee!
-        if cat.isBlocked():
-            cat.turnLeft()
-        else:
-            cat.walk()
+        '''if cat.isBlocked():
+            if self.moveCount==0:
+                cat.turnLeft()
+            self.moveCount = 1
+        elif not cat.isBlocked():
+            if self.moveCount==1:
+                cat.walk()
+                cat.turnRight()
+            self.moveCount = 0
+        '''
+        if cat.isBlocked()&self.moveCount==0:
             cat.turnRight()
+        elif not cat.isBlocked():
+            checkPath()
+            cat.walk()
