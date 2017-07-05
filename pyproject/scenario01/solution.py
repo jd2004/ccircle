@@ -56,5 +56,10 @@ class Solution:
 
     # Your solution!
     def moveTowardPizza(self, cat):
+        if cat.isBlocked():
+            cat.turnLeft()
+        if cat.isFacingS():
+            cat.walk()
+        if cat.isFacingE()
+
         # Wheeeee!
-        cat.turnLeft()
