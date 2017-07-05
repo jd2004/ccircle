@@ -1,3 +1,5 @@
+import ccircle
+import worlds
 # Your solution goes in this file!
 
 '''
@@ -43,12 +45,12 @@ class Solution:
     def __init__(self):
         # If you want to keep track of any variables, you can initialize them here using self.var = value
         # e.g.
-        #   self.moveCount = 0
+        # 15self.moveCount = 0
         pass
 
-    # Choose your level here: 'easy', 'medium', or 'hard'!
+    # Choose your level here: 'tutorial', 'easy', 'normal', 'medium', 'winner' or 'hard'!
     def getLevel(self):
-        return 'easy'
+        return worlds.winner()
 
     # Smaller pause time = faster simulation
     def getPauseTime(self):
@@ -56,5 +58,8 @@ class Solution:
 
     # Your solution!
     def moveTowardPizza(self, cat):
-        # Wheeeee!
-        cat.turnLeft()
+        if cat.isBlocked():
+            cat.turnRight()
+        else:
+            cat.walk()
+            cat.turnLeft()
