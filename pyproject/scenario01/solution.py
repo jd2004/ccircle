@@ -39,11 +39,13 @@
             Instructs the cat to walk in the direction it is facing
 '''
 
+
 class Solution:
+
     def __init__(self):
         # If you want to keep track of any variables, you can initialize them here using self.var = value
         # e.g.
-        #   self.moveCount = 0
+        self.moveCount = 0
         pass
 
     # Choose your level here: 'easy', 'medium', or 'hard'!
@@ -54,7 +56,30 @@ class Solution:
     def getPauseTime(self):
         return 0.5
 
+
     # Your solution!
     def moveTowardPizza(self, cat):
+        def checkPath():
+            if self.moveCount==0:
+                cat.turnRight()
+                self.moveCount=1
+            if cat.isBlocked():
+                cat.turnLeft
+                self.moveCount=0
+
         # Wheeeee!
-        cat.turnLeft()
+        '''if cat.isBlocked():
+            if self.moveCount==0:
+                cat.turnLeft()
+            self.moveCount = 1
+        elif not cat.isBlocked():
+            if self.moveCount==1:
+                cat.walk()
+                cat.turnRight()
+            self.moveCount = 0
+        '''
+        if cat.isBlocked()&self.moveCount==0:
+            cat.turnRight()
+        elif not cat.isBlocked():
+            checkPath()
+            cat.walk()
