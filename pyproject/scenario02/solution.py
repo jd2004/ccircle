@@ -67,3 +67,4 @@ class StockTrader:
                 market.buy(account, sym, 15)
             if account.getShares(sym) >= 1 and 45 < price:
                 market.sell(account, sym, 1)
+        # Test change.
