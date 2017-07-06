@@ -50,7 +50,7 @@ class StockTrader:
 
     # Controls how fast the simulation runs; 0 = fastest
     def getPauseTime(self):
-        return 0
+        return 0.0
 
     # Use different numbers to get different random variations of the simulation
     def getSeed(self):
