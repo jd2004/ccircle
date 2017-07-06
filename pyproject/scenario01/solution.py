@@ -1,4 +1,4 @@
-
+import ccircle
 import worlds
 # Your solution goes in this file!
 
@@ -54,7 +54,7 @@ class Solution:
 
     # Choose your level here: 'worlds.easy()', 'worlds.medium()', or 'worlds.hard()'!
     def getLevel(self):
-        return worlds.hard()
+        return worlds.easy()
 
     # Smaller pause time = faster simulation
     def getPauseTime(self):
@@ -62,9 +62,30 @@ class Solution:
 
     # Your solution!
     def moveTowardPizza(self, cat):
-        if cat.isBlocked():
-        cat.turnLeft()if cat.isFacingS():
+        '''if cat.isBlocked():
+            cat.turnLeft()
+        if cat.isFacingS():
             cat.walk()
-        if cat.isFacingE()
+        if cat.isFacingE():
+            cat.walk()
+        if cat.isFacingN():
+            cat.turnRight()
+            cat.turnRight()
+        if cat.isBlocked():
+            cat.turnLeft()
+        if cat.isBlocked():
+            cat.turnLeft()
+        if cat.isFacingN():
+            cat.walk()
+        if cat.isBlocked():
+            cat.turnRight()
+        if cat.isBlocked():
+            cat.turnRight()
+        if cat.isBlocked():
+            cat.turnRight()'''
 
-        # Wheeeee!
+
+
+
+
+
