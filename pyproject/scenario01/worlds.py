@@ -1,3 +1,12 @@
+def tutorial():
+  return '''
+  WWWWWW
+  WWWWWW
+  X---!
+  WWWWWW
+  WWWWWW
+  '''
+
 def easy():
   return '''
     X-W---
@@ -6,6 +15,19 @@ def easy():
     W---W-
     ---WW-
     WWWW!-
+  '''
+
+def normal():
+  return '''
+  WWWWWWWWWW
+  X--------W
+  WWWWWWWW-W
+  W------W-W
+  W-WWWW-W-W
+  W-W-!--W-W
+  W-WWWWWW-W
+  W--------W
+  WWWWWWWWWW
   '''
 
 def medium():
@@ -20,6 +42,14 @@ def medium():
     -W-----W!-
     -WWWWW-W-W
     -------W-W
+  '''
+def winner():
+  return '''
+  X!!!!
+  !!!!!
+  !!!!!
+  !!!!!
+  !!!!!
   '''
 
 def hard():
