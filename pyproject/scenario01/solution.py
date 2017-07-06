@@ -58,7 +58,7 @@ class Solution:
 
     # Smaller pause time = faster simulation
     def getPauseTime(self):
-        return 0.5
+        return 0
 
     # Your solution!
     def moveTowardPizza(self, cat):
