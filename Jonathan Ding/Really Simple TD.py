@@ -58,7 +58,7 @@ while window.isOpen():
         draw_enemy(enemyX[i], enemyY[i], enemyHP[i])
         enemyY[i] = enemyY[i] + 0.5
         if 0 <= enemyY[i] <= 1800:
-            enemyHP[i] = enemyHP[i] + 0.1
+            enemyHP[i] = enemyHP[i] - 0.1
         if enemyHP[i] <= 0:
             enemyHP[i] = 0
             window.drawCircle(enemyX[i], enemyY[i], 35, 0.0, 1.0, 0.4)
