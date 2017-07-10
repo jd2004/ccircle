@@ -9,9 +9,7 @@ size=50
 color=50
 dotY=[0,-100,-240,-150,-70,-90,-210,
       -110,-40,-50,-69,-508,-57,-954,-195]
-#dotX=[random.getint(0,1000),random.getint(0,1000),random.getint(0,1000),random.getint(0,1000),random.getint(0,1000),
-#      random.getint(0,1000),random.getint(0,1000),random.getint(0,1000),random.getint(0,1000),random.getint(0,1000),
-#      random.getint(0,1000),random.getint(0,1000),random.getint(0,1000),random.getint(0,1000),random.getint(0,1000)]
+
 dotX=[593,105,729,345,645,893,294,
       169,671,716,201,801,395,487,58]
 while window.isOpen():
@@ -20,8 +18,6 @@ while window.isOpen():
     mouseX,mouseY=window.getMousePos()
     window.hideMouse()
     window.drawCircle(mouseX, mouseY, 100, 0.5, 1, 0.5)
-    #for i in range(1,40):
-    #   window.drawLine(mouseX-100+i*5,mouseY-120,mouseX-100+i*5,mouseY-60,0,0,0)
     if ccircle.isMouseDown('left')==True:
         window.drawCircle(mouseX, mouseY + 30, size/1.2, 0, 0, 0)
     else:
