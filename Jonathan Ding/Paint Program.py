@@ -1,8 +1,8 @@
 import ccircle
 from math import*
 window = ccircle.Window()
-#window.toggleMaximized()
 window.hideMouse()
+the_answer_to_life_the_universe_and_everything=floor(42)
 
 points = []
 color='blue'
