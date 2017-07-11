@@ -2,7 +2,7 @@ import ccircle
 import random
 from math import*
 
-window = ccircle.Window()
+window = ccircle.Window("TOWER DEFENSE!")
 
 towers1 = [
     0, 0, 0, 0, 0,
@@ -25,14 +25,30 @@ window.toggleMaximized()
 enemyX = [random.randint(1, 1600), random.randint(1, 1600), random.randint(1, 1600), random.randint(1, 1600),
           random.randint(1, 1600), random.randint(1, 1600), random.randint(1, 1600), random.randint(1, 1600),
           random.randint(1, 1600), random.randint(1, 1600), random.randint(1, 1600), random.randint(1, 1600),
-          random.randint(1, 1600), random.randint(1, 1600), random.randint(1, 1600), random.randint(1, 1600)]
+          random.randint(1, 1600), random.randint(1, 1600), random.randint(1, 1600), random.randint(1, 1600),
+          random.randint(400, 1200), random.randint(400, 1200), random.randint(400, 1200),
+          random.randint(400, 1200), random.randint(400, 1200), random.randint(400, 1200),
+          random.randint(700, 900)]
 enemyY = [random.randint(1, 800) - 1800, random.randint(1, 800) - 1800, random.randint(1, 800) - 1800,
           random.randint(1, 800) - 1800, random.randint(1, 800) - 1800, random.randint(1, 800) - 1800,
           random.randint(1, 800) - 1800, random.randint(1, 800) - 1800, random.randint(1, 800) - 1800,
           random.randint(1, 800) - 1800, random.randint(1, 800) - 1800, random.randint(1, 800) - 1800,
           random.randint(1, 800) - 1800, random.randint(1, 800) - 1800, random.randint(1, 800) - 1800,
-          random.randint(1, 800) - 1800]
-enemyHP = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
+          random.randint(1, 800) - 1800,
+          random.randint(1, 800) - 3600, random.randint(1, 800) - 3600, random.randint(1, 800) - 3600,
+          random.randint(1, 800) - 3600, random.randint(1, 800) - 3600, random.randint(1, 800) - 3600,
+          random.randint(1, 800) - 5000]
+enemyHP = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
+           300, 300, 300, 300, 300, 300,
+           1000]
+
+enemySpeed = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.6]
+
+enemyDead = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+towerY = [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000,
+          1000, 1000, 1000, 1000, 1000, 1000, 1000]
+towerX = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
 
 def draw_enemy(x, y, hp):
@@ -42,26 +58,69 @@ def draw_enemy(x, y, hp):
     window.drawRect(x-hp/2, y-50, hp, 10, 0.0, 1.0, 1.0)
 
 
+def draw_foe(x, y, hp):
+    window.drawCircle(x, y, 40, 0.0, 0.0, 1.0)
+    window.drawCircle(x - 10, y - 10, 5, 0.0, 0.0, 0.0)
+    window.drawCircle(x + 10, y - 10, 5, 0.0, 0.0, 0.0)
+    window.drawRect(x - hp / 2, y - 50, hp, 10, 0.0, 1.0, 1.0)
+
+
+def draw_boss(x, y, hp):
+    window.drawCircle(x, y, 50, 0.0, 0.0, 0.0)
+    window.drawCircle(x - 15, y - 15, 5, 1.0, 0.0, 0.0)
+    window.drawCircle(x + 15, y - 15, 5, 1.0, 0.0, 0.0)
+    window.drawRect(x - hp / 2, y - 50, hp, 10, 0.0, 1.0, 1.0)
+
+
 def draw_tower(x, y):
-    window.drawRect(x-160, y-80, 320, 160, 1.0, 1.0, 1.0, 0.2)
+    window.drawCircle(x, y, 200, 1.0, 1.0, 1.0, 0.2)
     window.drawCircle(x, y, 25, 1.0, 0.0, 0.0)
     window.drawCircle(x, y, 20, 0.0, 0.0, 1.0)
 
 
-money = 3000
+def dst(a, b, c, d):
+    return sqrt(abs(a - b) + abs(c - d))
+
+money = 300
+timer = 0
 
 while window.isOpen():
     window.clear(0.0, 1.0, 0.4)
     mouseX, mouseY = window.getMousePos()
     length, height = window.getSize()
-    for i in range(1, 16):
+    money = money + 0.05
+    for i in range(0, 15):
         draw_enemy(enemyX[i], enemyY[i], enemyHP[i])
-        enemyY[i] = enemyY[i] + 0.5
-        if 0 <= enemyY[i] <= 1800:
-            enemyHP[i] = enemyHP[i] - 0.1
+        enemyY[i] = enemyY[i] + enemySpeed[i] / 2
+        for m in range(0, 25):
+            if dst(enemyX[i], towerX[m], enemyY[i], towerY[m]) < 15:
+                enemyHP[i] = enemyHP[i] - 1
         if enemyHP[i] <= 0:
             enemyHP[i] = 0
+            enemyDead[i] = 1
             window.drawCircle(enemyX[i], enemyY[i], 35, 0.0, 1.0, 0.4)
+
+    for i in range(16, 21):
+        draw_foe(enemyX[i], enemyY[i], enemyHP[i])
+        enemyY[i] = enemyY[i] + enemySpeed[i] / 2
+        for m in range(0, 25):
+            if dst(enemyX[i], towerX[m], enemyY[i], towerY[m]) < 15:
+                enemyHP[i] = enemyHP[i] - 1
+        if enemyHP[i] <= 0:
+            enemyHP[i] = 0
+            enemyDead[i] = 1
+            window.drawCircle(enemyX[i], enemyY[i], 45, 0.0, 1.0, 0.4)
+
+    for i in range(22, 23):
+        draw_boss(enemyX[i], enemyY[i], enemyHP[i])
+        enemyY[i] = enemyY[i] + enemySpeed[i] / 2
+        for m in range(0, 25):
+            if dst(enemyX[i], towerX[m], enemyY[i], towerY[m]) < 15:
+                enemyHP[i] = enemyHP[i] - 1
+        if enemyHP[i] <= 0:
+            enemyHP[i] = 0
+            enemyDead[i] = 1
+            window.drawCircle(enemyX[i], enemyY[i], 55, 0.0, 1.0, 0.4)
 
     if ccircle.isMouseDown('left') and money >= 100:
         if mouseY < 168:
@@ -147,21 +206,36 @@ while window.isOpen():
     for i in range(5):
         if towers1[i] == 1:
             draw_tower((320 * (i % 5)) + 160, 84)
+            towerX[i] = ((320 * (i % 5)) + 160)
+            towerY[i] = 84
     for i in range(5):
         if towers2[i] == 1:
             draw_tower((320 * (i % 5)) + 160, 252)
+            towerX[i + 5] = ((320 * (i % 5)) + 160)
+            towerY[i + 5] = 252
     for i in range(5):
         if towers3[i] == 1:
             draw_tower((320 * (i % 5)) + 160, 420)
+            towerX[i + 10] = ((320 * (i % 5)) + 160)
+            towerY[i + 10] = 420
     for i in range(5):
         if towers4[i] == 1:
             draw_tower((320 * (i % 5)) + 160, 588)
+            towerX[i + 15] = ((320 * (i % 5)) + 160)
+            towerY[i + 15] = 588
     for i in range(5):
         if towers5[i] == 1:
             draw_tower((320 * (i % 5)) + 160, 756)
+            towerX[i + 20] = ((320 * (i % 5)) + 160)
+            towerY[i + 20] = 756
 
     for i in range(5):
         window.drawLine(length * i / 5, 0, length * i / 5, height, 2, 1.0, 1.0, 1.0)
         window.drawLine(0, height * i / 5, length, height * i / 5, 2, 1.0, 1.0, 1.0)
-    print(towers1[4])
+
+    if enemyHP[22] == 0:
+        print('WINNER')
+    elif timer >= 200000:
+        print('LOSER')
+    print(money)
     window.update()

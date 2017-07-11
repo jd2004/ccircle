@@ -42,11 +42,12 @@ while window.isOpen():
         cG = 0.2
         cB = 0.2
     if ccircle.isMouseDown('left'):
-        if mY < 50:
+
+        if mY < 50 and mX < 300:
             if mX < 50:
-                color='blue'
+                color = 'blue'
             elif mX < 100:
-                color='green'
+                color = 'green'
             elif mX < 150:
                 color = 'yellow'
             elif mX < 200:
@@ -55,7 +56,7 @@ while window.isOpen():
                 color = 'black'
             elif mX < 300:
                 color = 'white'
-        elif mY < 100:
+        elif mY < 100 and mX < 300:
             if mX < 50:
                 size = 4
             elif mX < 100:
