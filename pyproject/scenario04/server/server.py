@@ -1,11 +1,14 @@
 import ccircle
 import json
 import socketserver
+import sys
 import time
 
 import config
-import gameconfig
 import game
+import util
+
+LOCAL = '--local' in sys.argv
 
 class GameClientHandler(socketserver.BaseRequestHandler):
     """ Responds to requests from clients by unpacking messages and passing them to
@@ -21,15 +24,15 @@ class GameClientHandler(socketserver.BaseRequestHandler):
 
             msg_data = msg.get('data', None)
             if msg_data:
-                print('{}  --> {} {}'.format(self.client_address[0], msg_name, msg_data))
+                util.log('{}  --> {} {}'.format(self.client_address[0], msg_name, msg_data))
             else:
-                print('{}  --> {}'.format(self.client_address[0], msg_name))
+                util.log('{}  --> {}'.format(self.client_address[0], msg_name))
 
-            status, data = self.server.state._respond(self.client_address[0], msg_name, msg_data)
+            status, data = self.server.handler._respond(self.client_address[0], msg_name, msg_data)
             self.respond(status, data)
 
         except Exception as e:
-            print('!! {}  -->  < {} >'.format(self.client_address[0], e))
+            util.log('!! {}  -->  < {} >'.format(self.client_address[0], e))
             self.respond('server_error', None)
             return
 
@@ -38,22 +41,27 @@ class GameClientHandler(socketserver.BaseRequestHandler):
             response = {'status': status}
             if data:
                 response['data'] = data
-                print('{}  <-- {} {}'.format(self.client_address[0], status, data))
+                util.log('{}  <-- {} {}'.format(self.client_address[0], status, data))
             else:
-                print('{}  <-- {}'.format(self.client_address[0], status))
+                util.log('{}  <-- {}'.format(self.client_address[0], status))
             self.request.sendall(bytes(json.dumps(response), 'utf-8'))
         except Exception as e:
-            print('!! {}  <--  < {} >'.format(self.client_address[0], e))
+            util.log('!! {}  <--  < {} >'.format(self.client_address[0], e))
 
 window = ccircle.Window('Scenario 4 Server', 1024, 768)
-window.toggleMaximized()
+if not LOCAL:
+    window.toggleMaximized()
 
-print('TCPServer listening on {}:{}'.format(config.SERVER_HOST, config.SERVER_PORT))
-server = socketserver.TCPServer((config.SERVER_HOST, config.SERVER_PORT), GameClientHandler)
+HOST = config.SERVER_HOST if not LOCAL else 'localhost'
+PORT = config.SERVER_PORT
+
+util.log('>> server started on {}:{} <<'.format(HOST, PORT))
+server = socketserver.TCPServer((HOST, PORT), GameClientHandler)
 server.state = game.State(window.getSize())
+server.handler = game.MessageHandler(server.state)
 server.timeout = 1.0 / 30.0
 
-time_last = time.time()
+time_last = time.perf_counter()
 while window.isOpen():
     window.clear(0.1, 0.1, 0.1)
 
@@ -61,11 +69,13 @@ while window.isOpen():
     server.handle_request()
 
     # Update step
-    time_now = time.time()
-    server.state._update(time_now - time_last)
+    time_now = time.perf_counter()
+    server.state.update(time_now - time_last)
     time_last = time_now
 
     # Draw
-    server.state._draw(window)
+    server.state.draw(window)
 
     window.update()
+
+util.log('>> server shutting down gracefully <<')
