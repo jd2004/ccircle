@@ -2,6 +2,42 @@ import ccircle
 import random
 from math import*
 
+'''
+J # r + r r F
+y           b
+y    mini   ]
++    mono   +
+y    poly   b
+[           b
+F g g + g # G 
+
+G gives 100
+
+g costs 20 hut 10 house 20 hotel 30
+rent 5 10 15 20
+
+y costs 50 hut 20 house 30 hotel 40
+rent 10 15 25 40
+
+r costs 80 hut 30 house 40 hotel 50
+rent 15 25 40 60
+
+b costs 120 hut 40 house 50 hotel 60
+rent 25 45 70   
+
+[ or ] costs 60
+rent roll * 5
+
+# gives 10 * random.randint(-3, 4)
+
++ costs 50
+rent 20 * number of railroads
+
+F gives does none
+
+J skips your turn for 3 rounds
+'''
+
 window = ccircle.Window("TOWER DEFENSE!")
 
 towers1 = [
@@ -35,14 +71,17 @@ enemyY = [random.randint(1, 800) - 1800, random.randint(1, 800) - 1800, random.r
           random.randint(1, 800) - 1800, random.randint(1, 800) - 1800, random.randint(1, 800) - 1800,
           random.randint(1, 800) - 1800, random.randint(1, 800) - 1800, random.randint(1, 800) - 1800,
           random.randint(1, 800) - 1800,
-          random.randint(1, 800) - 3600, random.randint(1, 800) - 3600, random.randint(1, 800) - 3600,
-          random.randint(1, 800) - 3600, random.randint(1, 800) - 3600, random.randint(1, 800) - 3600,
-          random.randint(1, 800) - 5000]
+          random.randint(1, 800) - 2500, random.randint(1, 800) - 2500, random.randint(1, 800) - 2500,
+          random.randint(1, 800) - 2500, random.randint(1, 800) - 2500, random.randint(1, 800) - 2500,
+          -3600]
 enemyHP = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
            300, 300, 300, 300, 300, 300,
            1000]
 
-enemySpeed = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.6]
+enemySpeed = [1, 1, 1, 1, 1,
+              1, 1, 1, 1, 1,
+              1, 1, 1, 1, 1, 1,
+              0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.6]
 
 enemyDead = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -55,21 +94,24 @@ def draw_enemy(x, y, hp):
     window.drawCircle(x, y, 30, 1.0, 0.0, 0.0)
     window.drawCircle(x-10, y-10, 5, 0.0, 0.0, 0.0)
     window.drawCircle(x+10, y-10, 5, 0.0, 0.0, 0.0)
-    window.drawRect(x-hp/2, y-50, hp, 10, 0.0, 1.0, 1.0)
+    window.drawRect(x - 50, y - 50, 100, 10, 1.0, 0.0, 0.0)
+    window.drawRect(x - 50, y-50, hp, 10, 0.0, 1.0, 1.0)
 
 
 def draw_foe(x, y, hp):
     window.drawCircle(x, y, 40, 0.0, 0.0, 1.0)
     window.drawCircle(x - 10, y - 10, 5, 0.0, 0.0, 0.0)
     window.drawCircle(x + 10, y - 10, 5, 0.0, 0.0, 0.0)
-    window.drawRect(x - hp / 2, y - 50, hp, 10, 0.0, 1.0, 1.0)
+    window.drawRect(x - 150, y - 50, 300, 10, 1.0, 0.0, 0.0)
+    window.drawRect(x - 150, y - 50, hp, 10, 0.0, 1.0, 1.0)
 
 
 def draw_boss(x, y, hp):
     window.drawCircle(x, y, 50, 0.0, 0.0, 0.0)
     window.drawCircle(x - 15, y - 15, 5, 1.0, 0.0, 0.0)
     window.drawCircle(x + 15, y - 15, 5, 1.0, 0.0, 0.0)
-    window.drawRect(x - hp / 2, y - 50, hp, 10, 0.0, 1.0, 1.0)
+    window.drawRect(x-500, y - 50, 1000, 10, 1.0, 0.0, 0.0)
+    window.drawRect(x - 500, y - 50, hp, 10, 0.0, 1.0, 1.0)
 
 
 def draw_tower(x, y):
@@ -89,38 +131,48 @@ while window.isOpen():
     mouseX, mouseY = window.getMousePos()
     length, height = window.getSize()
     money = money + 0.05
+    timer = timer + 1
+
     for i in range(0, 15):
         draw_enemy(enemyX[i], enemyY[i], enemyHP[i])
         enemyY[i] = enemyY[i] + enemySpeed[i] / 2
         for m in range(0, 25):
             if dst(enemyX[i], towerX[m], enemyY[i], towerY[m]) < 15:
-                enemyHP[i] = enemyHP[i] - 1
+                enemyHP[i] = enemyHP[i] - 0.3
+                if enemyDead[i] != 1:
+                    window.drawLine(towerX[m], towerY[m], enemyX[i], enemyY[i], 2, 1.0, 0.0, 0.0)
         if enemyHP[i] <= 0:
             enemyHP[i] = 0
             enemyDead[i] = 1
             window.drawCircle(enemyX[i], enemyY[i], 35, 0.0, 1.0, 0.4)
+            window.drawRect(enemyX[i] - 60, enemyY[i] - 55, 120, 30, 0.0, 1.0, 0.4)
 
     for i in range(16, 21):
         draw_foe(enemyX[i], enemyY[i], enemyHP[i])
         enemyY[i] = enemyY[i] + enemySpeed[i] / 2
         for m in range(0, 25):
             if dst(enemyX[i], towerX[m], enemyY[i], towerY[m]) < 15:
-                enemyHP[i] = enemyHP[i] - 1
+                enemyHP[i] = enemyHP[i] - 0.3
+                if enemyDead[i] != 1:
+                    window.drawLine(towerX[m], towerY[m], enemyX[i], enemyY[i], 2, 1.0, 0.0, 0.0)
         if enemyHP[i] <= 0:
             enemyHP[i] = 0
             enemyDead[i] = 1
             window.drawCircle(enemyX[i], enemyY[i], 45, 0.0, 1.0, 0.4)
+            window.drawRect(enemyX[i] - 160, enemyY[i] - 55, 320, 30, 0.0, 1.0, 0.4)
 
-    for i in range(22, 23):
-        draw_boss(enemyX[i], enemyY[i], enemyHP[i])
-        enemyY[i] = enemyY[i] + enemySpeed[i] / 2
-        for m in range(0, 25):
-            if dst(enemyX[i], towerX[m], enemyY[i], towerY[m]) < 15:
-                enemyHP[i] = enemyHP[i] - 1
-        if enemyHP[i] <= 0:
-            enemyHP[i] = 0
-            enemyDead[i] = 1
-            window.drawCircle(enemyX[i], enemyY[i], 55, 0.0, 1.0, 0.4)
+    draw_boss(enemyX[22], enemyY[22], enemyHP[22])
+    enemyY[22] = enemyY[22] + enemySpeed[22] / 2
+    for m in range(0, 25):
+        if dst(enemyX[22], towerX[m], enemyY[22], towerY[m]) < 15:
+            enemyHP[22] = enemyHP[22] - 0.3
+            if enemyDead[22] != 1:
+                window.drawLine(towerX[m], towerY[m], enemyX[22], enemyY[22], 2, 1.0, 0.0, 0.0)
+    if enemyHP[22] <= 0:
+        enemyHP[22] = 0
+        enemyDead[22] = 1
+        window.drawCircle(enemyX[22], enemyY[22], 55, 0.0, 1.0, 0.4)
+        window.drawRect(enemyX[22] - 510, enemyY[22] - 55, 1020, 30, 0.0, 1.0, 0.4)
 
     if ccircle.isMouseDown('left') and money >= 100:
         if mouseY < 168:
@@ -235,7 +287,7 @@ while window.isOpen():
 
     if enemyHP[22] == 0:
         print('WINNER')
-    elif timer >= 200000:
+    elif timer >= 16000:
         print('LOSER')
-    print(money)
+
     window.update()

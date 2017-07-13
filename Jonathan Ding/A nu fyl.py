@@ -29,7 +29,7 @@ while window.isOpen():
         cloudX[i] += cloudSpeed[i]
         if cloudX[i] > 1600:
             cloudX[i] = 1
-    for i in range(500000):
+    for i in range(50):
         window.hideMouse()
         mouseX, mouseY = window.getMousePos()
         bouncyX.append(random.randint(1, 1600))

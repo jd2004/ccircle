@@ -1,6 +1,7 @@
 
 import ccircle
 import random
+
 window=ccircle.Window("Let's just get it working!")
 
 bigger=True

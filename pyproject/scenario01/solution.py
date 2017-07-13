@@ -54,11 +54,11 @@ class Solution:
 
     # Choose your level here: 'worlds.easy()', 'worlds.medium()', or 'worlds.hard()'!
     def getLevel(self):
-        return worlds.hard()
+        return worlds.easy()
 
     # Smaller pause time = faster simulation
     def getPauseTime(self):
-        return 0
+        return 0.5
 
     # Your solution!
     def moveTowardPizza(self, cat):
