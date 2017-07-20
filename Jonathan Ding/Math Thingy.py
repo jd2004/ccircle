@@ -13,7 +13,7 @@ elif IsPrime == True:
     print("IT'S PRIME")
 elif IsPrime == False:
     print("IT'S COMPOSITE")'''
-
+from math import *
 
 def numbers_squared_dict(a):
     d = {}
@@ -21,7 +21,7 @@ def numbers_squared_dict(a):
         d[i] = i**2
     return d
 
-print(numbers_squared_dict(10))
+#print(numbers_squared_dict(10))
 
 import operator
 
@@ -36,4 +36,10 @@ d = {
 def sort_by_key(dict):
     return sorted(dict)
 
-print(sort_by_key(d.items()))
+#print(sort_by_key(d.items()))
+
+
+def dst(a, b, c, d):
+    return sqrt((a - b)**2 + (c - d)**2)
+
+print(dst(0, 3, 0, 4))

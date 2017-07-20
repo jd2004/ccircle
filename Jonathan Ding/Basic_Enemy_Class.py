@@ -2,7 +2,7 @@ import ccircle
 from math import*
 
 enemyHp = [100, 60, 300, 40, 800, 1500, 40000]
-enemySpd = [0.05, 0.1, 0.02, 0.25, 0.006, 0.6, 0.001]
+enemySpd = [0.5, 1, 0.2, 2.5, 0.06, 0.6, 0.01]
 
 
 class Enemy:
@@ -25,6 +25,21 @@ class Enemy:
         if self.which == 3:
             window.drawCircle(self.x, self.y, 45, 0.0, 1.0, 1.0)
             window.drawRect(self.x - self.hp / 2, self.y - 30, self.hp, 8, 0.5, 0.5, 0.0)
+        if self.which == 4:
+            window.drawCircle(self.x, self.y, 45, 0.0, 1.0, 1.0)
+            window.drawRect(self.x - self.hp / 2, self.y - 30, self.hp, 8, 0.5, 0.2, 0.0)
+        if self.which == 5:
+            window.drawCircle(self.x, self.y, 45, 0.0, 1.0, 1.0)
+            window.drawRect(self.x - self.hp / 2, self.y - 30, self.hp, 8, 0.7, 0.0, 0.0)
+        if self.which == 6:
+            window.drawCircle(self.x, self.y, 45, 0.0, 1.0, 1.0)
+            window.drawRect(self.x - self.hp / 2, self.y - 30, self.hp, 8, 0.9, 0.1, 0.3)
+        if self.which == 7:
+            window.drawCircle(self.x, self.y, 45, 0.0, 1.0, 1.0)
+            window.drawRect(self.x - self.hp / 2, self.y - 30, self.hp, 8, 0.5, 0.5, 0.5)
+        if self.which == 8:
+            window.drawCircle(self.x, self.y, 45, 0.0, 1.0, 1.0)
+            window.drawRect(self.x - self.hp / 2, self.y - 30, self.hp, 8, 0.1, 0.1, 0.9)
 
     def update(self, dst, diff):
         if self.v == 'left':
@@ -72,4 +87,10 @@ class Enemy:
             if dst(self.x, 300, self.y, 465) < 5:
                 self.v = 'down'
             if dst(self.x, 300, self.y, 620) < 5:
+                self.v = 'right'
+        if diff == 3:
+            if dst(self.x, 135, self.y, 540) < 5:
+                self.v = 'right'
+        if diff == 4:
+            if dst(self.x, 135, self.y, 135) < 5:
                 self.v = 'right'
