@@ -2,7 +2,7 @@ import ccircle
 from math import*
 
 enemyHp = [100, 60, 300, 40, 800, 1500, 40000]
-enemySpd = [0.5, 1, 0.2, 2.5, 0.06, 0.6, 0.01]
+enemySpd = [0.5, 1, 0.2, 1.6, 0.06, 0.6, 0.01]
 
 
 class Enemy:

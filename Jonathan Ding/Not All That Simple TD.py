@@ -17,9 +17,63 @@ Shop?
 Ice Beam?
 '''
 
+
 window = ccircle.Window()
 
 window.toggleMaximized()
+
+archer = ccircle.Image('Crossbow.png')
+catapult = ccircle.Image('Catapult.png')
+cannon1 = ccircle.Image('Cannon1.png')
+cannon2 = ccircle.Image('Cannon2.png')
+cannon3 = ccircle.Image('Cannon3.png')
+machine = ccircle.Image('MachineGun.png')
+axe = ccircle.Image('Axe.png')
+laser = ccircle.Image('Laser.png')
+
+archerz = ccircle.Image('Crossbowz.png')
+catapultz = ccircle.Image('Catapultz.png')
+cannon1z = ccircle.Image('Cannon1z.png')
+cannon2z = ccircle.Image('Cannon2z.png')
+cannon3z = ccircle.Image('Cannon3z.png')
+machinez = ccircle.Image('MachineGunz.png')
+axez = ccircle.Image('Axez.png')
+laserz = ccircle.Image('Laserz.png')
+
+archer.eraseWhite()
+catapult.eraseWhite()
+cannon1.eraseWhite()
+cannon2.eraseWhite()
+cannon3.eraseWhite()
+machine.eraseWhite()
+axe.eraseWhite()
+laser.eraseWhite()
+
+archerz.eraseWhite()
+catapultz.eraseWhite()
+cannon1z.eraseWhite()
+cannon2z.eraseWhite()
+cannon3z.eraseWhite()
+machinez.eraseWhite()
+axez.eraseWhite()
+laserz.eraseWhite()
+
+images = [archer, catapult, cannon1, cannon2, cannon3, machine, axe, laser,
+          archerz, catapultz, cannon1z, cannon2z, cannon3z, machinez, axez, laserz]
+
+cannonball = ccircle.Image('cannonball.png')
+rock = ccircle.Image('rock.png')
+arrow = ccircle.Image('arrow.png')
+dynamite = ccircle.Image('dynamite.png')
+beam = ccircle.Image('beam.png')
+
+cannonball.eraseWhite()
+rock.eraseWhite()
+arrow.eraseWhite()
+dynamite.eraseWhite()
+beam.eraseWhite
+
+imgs = [cannonball, rock, arrow, dynamite, beam]
 
 pg = 1
 
@@ -29,12 +83,12 @@ towers = []
 
 ammos = []
 
-towerPrice = [100, 250, 400, 400, 400, 650, 800, 1000, 3000]
+towerPrice = [200, 250, 400, 400, 400, 650, 800, 3000]
+towerUpgrade = [300, 400, 600, 600, 600, 900, 1200, 5000]
 
 tower_select = -1
 
-towerNam = ["Archer", "Catapult", "Shot Cannon", "Shell Cannon", "Spray Cannon", "Machine Gun", "Axe", "OctoGun",
-            "Laser"]
+towerNam = ["Archer", "Catapult", "Shot Cannon", "Shell Cannon", "Spray Cannon", "Machine Gun", "Axe", "Laser"]
 
 grids = [
     [
@@ -95,7 +149,15 @@ waves = [
     [3, 600, 10],
     [2, 200, 40],
     [4, 500, 15],
-    [5, 350, 100],
+    [5, 350, 75],
+    [6, 50, 2],
+    [3, 150, 40],
+    [6, 300, 10],
+    [5, 140, 50],
+    [7, 50, 1],
+    [5, 50, 200],
+    [4, 50, 200],
+    [7, 230, 5]
 ]
 wave = 1
 
@@ -138,18 +200,18 @@ def draw_shop_button(x, y, r, tower, text):
     window.drawRect(x - r / 2, y - r / 2, r, r, 0.2, 0.6, 0.5)
     font1.draw(text, x - r * 2 / 5, y - r / 3, r / 20, 0.8, 0.5, 0.6)
     font1.draw("$ " + str(towerPrice[tower]), x - r * 2 / 5, y - r / 8, r / 20, 0.8, 0.5, 0.6)
-    stower = Basic_Tower_Class.Tower(x, y + 20, 0, tower)
-    stower.draw(window)
+    stower = Basic_Tower_Class.Tower(x, y + 20, 0, tower, images)
+    stower.draw()
     downis = ccircle.isMouseDown('left')
     if x + r / 2 > mouseX > x - r / 2 and y + r / 2 > mouseY > y - r / 2:
         window.drawRect(x - r / 2 - 10, y - r / 2 - 10, r + 20, r + 20, 0.0, 0.0, 0.0)
         window.drawRect(x - r / 2 - 8, y - r / 2 - 8, r + 16, r + 16, 0.2, 0.6, 0.5)
         font1.draw(text, x - r / 2, y - r / 3, r / 14, 0.8, 0.5, 0.6)
         font1.draw("$ " + str(towerPrice[tower]), x - r / 2, y - r / 8, r / 14, 0.8, 0.5, 0.6)
-        stower.draw(window)
+        stower.draw()
         if downis and tower_select == -1 and money >= towerPrice[tower]:
             money = money - towerPrice[tower]
-            stower.draw(window)
+            stower.draw()
             tower_select = tower
 
 
@@ -226,7 +288,7 @@ def game_page():
         enemies.append(enemy)
     elif waves[wave][1] * waves[wave][2] - load < 0:
         wave = wave + 1
-        load = -6000
+        load = -3000
     if wave > len(waves):
         pg = 5
 
@@ -238,7 +300,7 @@ def game_page():
                 if tower_select != -1 and 80 * j < mouseX < 80 * j + 80 and 80 * i < mouseY < 80 * i + 80:
                     window.drawRect(80 * j + 20, 80 * i + 20, 70, 70, 0.0, 0.6, 0.0)
                     if ccircle.isMouseDown('left'):
-                        t = Basic_Tower_Class.Tower(j * 80 + 55, i * 80 + 55, 0, tower_select)
+                        t = Basic_Tower_Class.Tower(j * 80 + 55, i * 80 + 55, 0, tower_select, images)
                         grids[difficulty - 1][i][j] = t
                         towers.append(t)
                         tower_select = -1
@@ -247,10 +309,18 @@ def game_page():
             if grids[difficulty - 1][i][j] != "t" and grids[difficulty - 1][i][j] != "e":
                 t = grids[difficulty - 1][i][j]
                 window.drawRect(80 * j + 20, 80 * i + 20, 70, 70, 0.1, 0.8, 0.2)
-                t.draw(window)
+                t.draw()
                 if 80 * j < mouseX < 80 * j + 80 and 80 * i < mouseY < 80 * i + 80:
                     window.drawCircle(80 * j + 60, 80 * i + 60, t.rng, 0.4, 0.4, 0.4, 0.4)
-
+                    if t.lvl == 0:
+                        if money >= towerUpgrade[t.which]:
+                            font1.draw("$ " + str(towerUpgrade[t.which]), 80 * j + 40, 80 * i + 60, 6, 0.0, 0.8, 0.4)
+                            if ccircle.isMouseDown('right'):
+                                t.lvl = 1
+                                money = money - towerUpgrade[t.which]
+                                t.refresh()
+                        if money <= towerUpgrade[t.which]:
+                            font1.draw("$ " + str(towerUpgrade[t.which]), 80 * j + 40, 80 * i + 60, 6, 1.0, 0.1, 0.1)
     for enemy in list(enemies):
         enemy.draw(window)
         enemy.update(dst, difficulty)
@@ -259,18 +329,18 @@ def game_page():
             lives = lives - 1
         if enemy.hp <= 0:
             enemies.remove(enemy)
-            money = money + 3
+            money = money + 15
 
     if tower_select != -1:
-        tower = Basic_Tower_Class.Tower(mouseX, mouseY, 0, tower_select)
-        tower.draw(window)
+        tower = Basic_Tower_Class.Tower(mouseX, mouseY, 0, tower_select, images)
+        tower.draw()
 
     font1.draw(str(lives) + " LIVES", 850, 100, 20, 1.0, 0.0, 0.0)
     font1.draw("$ " + str(money), 1100, 100, 20, 0.8, 1.0, 0.2)
     font1.draw("WAVE " + str(wave + 1), 1300, 100, 20, 0.0, 0.0, 1.0)
     for a in range(6):
         draw_shop_button(900 + 120 * a, 200, 100, a, towerNam[a])
-    for a in range(6, 9):
+    for a in range(6, 8):
         draw_shop_button(900 + 120 * (a - 6), 350, 100, a, towerNam[a])
     for tower in towers:
         not_shot = True
@@ -288,8 +358,29 @@ def game_page():
                                                tower.spd * ((enemy.x - tower.x) / dst(tower.x, enemy.x, tower.y, enemy.y)),
                                                tower.spd * ((enemy.y - tower.y) / dst(tower.x, enemy.x, tower.y, enemy.y)),
                                                tower.which,
-                                               atan2(enemy.y - tower.y, enemy.x - tower.x), tower)
+                                               atan2((tower.x - enemy.x), (tower.y - enemy.y)) * (360 / (2 * pi)), tower, imgs)
+                if tower.which == 4:
+                    spray1 = Basic_Ammo_Class.Ammo(tower.x - 20, tower.y,
+                                                   tower.spd * (
+                                                   (enemy.x - tower.x) / dst(tower.x, enemy.x, tower.y, enemy.y)),
+                                                   tower.spd * (
+                                                   (enemy.y - tower.y) / dst(tower.x, enemy.x, tower.y, enemy.y)),
+                                                   tower.which,
+                                                   atan2((tower.x - enemy.x), (tower.y - enemy.y)) * (360 / (2 * pi)),
+                                                   tower, imgs)
+                    spray2 = Basic_Ammo_Class.Ammo(tower.x + 20, tower.y,
+                                                   tower.spd * (
+                                                   (enemy.x - tower.x) / dst(tower.x, enemy.x, tower.y, enemy.y)),
+                                                   tower.spd * (
+                                                   (enemy.y - tower.y) / dst(tower.x, enemy.x, tower.y, enemy.y)),
+                                                   tower.which,
+                                                   atan2((tower.x - enemy.x), (tower.y - enemy.y)) * (360 / (2 * pi)),
+                                                   tower, imgs)
+                    ammos.append(spray1)
+                    ammos.append(spray2)
+
                 not_shot = False
+                tower.angle = atan2((tower.x-enemy.x), (tower.y-enemy.y)) * (360/(2*pi))
                 ammos.append(bullet)
 
     for bullet in list(ammos):
