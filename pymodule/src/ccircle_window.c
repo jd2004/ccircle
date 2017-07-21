@@ -5,13 +5,12 @@ typedef struct {
   HWND hwnd;
   HGLRC hglc;
   bool quit;
-} ccircle_window_t;
+} CC_Window;
 
-static ccircle_window_t* window_active = 0;
+static CC_Window* gWindowActive = 0;
+static bool gCreatedContext = 0;
 
-LRESULT CALLBACK
-ccircle_window_proc ( HWND self, UINT msg, WPARAM wp, LPARAM lp )
-{
+LRESULT CALLBACK CC_Window_Proc ( HWND self, UINT msg, WPARAM wp, LPARAM lp ) {
   switch(msg) {
     case WM_CLOSE:
       DestroyWindow(self);
@@ -27,6 +26,11 @@ ccircle_window_proc ( HWND self, UINT msg, WPARAM wp, LPARAM lp )
         DestroyWindow(self);
         break;
       }
+      CC_SetKeyState((int)wp, true);
+      return DefWindowProc(self, msg, wp, lp);
+
+    case WM_KEYUP:
+      CC_SetKeyState((int)wp, false);
       return DefWindowProc(self, msg, wp, lp);
 
     default:
@@ -35,9 +39,7 @@ ccircle_window_proc ( HWND self, UINT msg, WPARAM wp, LPARAM lp )
   return 0;
 }
 
-static int
-ccircle_window_init ( ccircle_window_t* self, PyObject* args, PyObject* kwds )
-{
+static int CC_Window_Init ( CC_Window* self, PyObject* args, PyObject* kwds ) {
   cstr title = "CC Window";
   int x = CW_USEDEFAULT;
   int y = CW_USEDEFAULT;
@@ -55,7 +57,7 @@ ccircle_window_init ( ccircle_window_t* self, PyObject* args, PyObject* kwds )
     WNDCLASSEX wc = { 0 };
     wc.cbSize        = sizeof(WNDCLASSEX);
     wc.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-    wc.lpfnWndProc   = (WNDPROC)ccircle_window_proc;
+    wc.lpfnWndProc   = (WNDPROC)CC_Window_Proc;
     wc.hInstance     = hinst;
     wc.hIcon         = LoadIcon(0, IDI_WINLOGO);
     wc.hCursor       = LoadCursor(0, IDC_ARROW);
@@ -103,10 +105,8 @@ ccircle_window_init ( ccircle_window_t* self, PyObject* args, PyObject* kwds )
 
     HDC dc = GetDC(hwnd);
     int iPF = ChoosePixelFormat(dc, &pfd);
-    if (!SetPixelFormat(dc, iPF, &pfd)) {
+    if (!SetPixelFormat(dc, iPF, &pfd))
       Fatal("Failed to set window pixel format");
-      return -1;
-    }
     ReleaseDC(hwnd, dc);
   }
 
@@ -114,26 +114,25 @@ ccircle_window_init ( ccircle_window_t* self, PyObject* args, PyObject* kwds )
   /* Create GL Context. */ {
     HDC dc = GetDC(hwnd);
     hglc = wglCreateContext(dc);
-    if (!hglc) {
+    if (!hglc)
       Fatal("Failed to create WGL context");
-      return -1;
-    }
-    if (!wglMakeCurrent(dc, hglc)) {
+    if (!wglMakeCurrent(dc, hglc))
       Fatal("Failed to make WGL context current");
-      return -1;
-    }
+    gCreatedContext = true;
     ReleaseDC(hwnd, dc);
   }
 
   ShowWindow(hwnd, SW_SHOW);
   UpdateWindow(hwnd);
 
+  GL_CHECK;
   glEnable(GL_POINT_SMOOTH);
   glEnable(GL_LINE_SMOOTH);
   glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
   glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
   glPointSize(2.0);
   glLineWidth(1.0);
+  GL_CHECK;
 
   self->hwnd = hwnd;
   self->hglc = hglc;
@@ -141,11 +140,14 @@ ccircle_window_init ( ccircle_window_t* self, PyObject* args, PyObject* kwds )
   return 0;
 }
 
-static void
-ccircle_window_setviewport ( ccircle_window_t* self )
-{
+bool CC_GLContext_Exists ( void ) {
+  return gCreatedContext;
+}
+
+static void CC_Window_SetViewport ( CC_Window* self ) {
   RECT vp;
   GetClientRect(self->hwnd, &vp);
+  GL_CHECK;
   glViewport(vp.left, vp.top, vp.right - vp.left, vp.bottom - vp.top);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -153,47 +155,38 @@ ccircle_window_setviewport ( ccircle_window_t* self )
   glScaled(2.0 / (vp.right - vp.left), -2.0 / (vp.bottom - vp.top), 1.0);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
+  GL_CHECK;
 }
 
-static void
-ccircle_window_setactive ( ccircle_window_t* self )
-{
-  if (self != window_active) {
-    window_active = self;
+static void CC_Window_SetActive ( CC_Window* self ) {
+  if (self != gWindowActive) {
+    gWindowActive = self;
     HDC dc = GetDC(self->hwnd);
     wglMakeCurrent(dc, self->hglc);
     ReleaseDC(self->hwnd, dc);
-    ccircle_window_setviewport(self);
+    CC_Window_SetViewport(self);
   }
 }
 
 /* --- Window::clear -------------------------------------------------------- */
 
-static PyObject*
-ccircle_window_clear ( ccircle_window_t* self, PyObject* args )
-{
+static PyObject* CC_Window_Clear ( CC_Window* self, PyObject* args ) {
   float r, g, b;
   if (!PyArg_ParseTuple(args, "fff", &r, &g, &b))
     return 0;
 
-  ccircle_window_setactive(self);
-  ccircle_window_setviewport(self);
+  CC_Window_SetActive(self);
+  CC_Window_SetViewport(self);
+  GL_CHECK;
   glClearColor(r, g, b, 1);
   glClear(GL_COLOR_BUFFER_BIT);
+  GL_CHECK;
   Py_RETURN_NONE;
 }
 
 /* --- Window::drawCircle --------------------------------------------------- */
 
-const float Tau = 6.28318531f;
-const float Pi  = 3.14159265f;
-const float Pi2 = 1.57079633f;
-const float Pi4 = 0.785398163f;
-const float Pi6 = 0.523598776f;
-
-static PyObject*
-ccircle_window_drawcircle ( ccircle_window_t* self, PyObject* args )
-{
+static PyObject* CC_Window_DrawCircle ( CC_Window* self, PyObject* args ) {
   float x, y, radius;
   float r = 1.0f;
   float g = 1.0f;
@@ -208,6 +201,7 @@ ccircle_window_drawcircle ( ccircle_window_t* self, PyObject* args )
   int verts = (int)fv;
   fv = (float)verts;
 
+  GL_CHECK;
   glBegin(GL_TRIANGLES);
   glColor4f(r, g, b, a);
   for (int i = 0; i < verts; ++i) {
@@ -218,14 +212,13 @@ ccircle_window_drawcircle ( ccircle_window_t* self, PyObject* args )
     glVertex2f(x + radius * cos(angle2), y + radius * sin(angle2));
   }
   glEnd();
+  GL_CHECK;
   Py_RETURN_NONE;
 }
 
 /* --- Window::drawLine ----------------------------------------------------- */
 
-static PyObject*
-ccircle_window_drawline ( ccircle_window_t* self, PyObject* args )
-{
+static PyObject* CC_Window_DrawLine ( CC_Window* self, PyObject* args ) {
   float x1, y1, x2, y2;
   float w = 2.0f;
   float r = 1.0f;
@@ -235,21 +228,21 @@ ccircle_window_drawline ( ccircle_window_t* self, PyObject* args )
   if (!PyArg_ParseTuple(args, "ffff|fffff", &x1, &y1, &x2, &y2, &w, &r, &g, &b, &a))
     return 0;
 
-  ccircle_window_setactive(self);
+  CC_Window_SetActive(self);
+  GL_CHECK;
   glLineWidth(w);
   glColor4f(r, g, b, a);
   glBegin(GL_LINES);
   glVertex2f(x1, y1);
   glVertex2f(x2, y2);
   glEnd();
+  GL_CHECK;
   Py_RETURN_NONE;
 }
 
 /* --- Window::drawPoint ---------------------------------------------------- */
 
-static PyObject*
-ccircle_window_drawpoint ( ccircle_window_t* self, PyObject* args )
-{
+static PyObject* CC_Window_DrawPoint ( CC_Window* self, PyObject* args ) {
   float x, y;
   float s = 2.0f;
   float r = 1.0f;
@@ -259,20 +252,20 @@ ccircle_window_drawpoint ( ccircle_window_t* self, PyObject* args )
   if (!PyArg_ParseTuple(args, "ff|fffff", &x, &y, &s, &r, &g, &b, &a))
     return 0;
 
-  ccircle_window_setactive(self);
+  CC_Window_SetActive(self);
+  GL_CHECK;
   glPointSize(s);
   glColor4f(r, g, b, a);
   glBegin(GL_POINTS);
   glVertex2f(x, y);
   glEnd();
+  GL_CHECK;
   Py_RETURN_NONE;
 }
 
 /* --- Window::drawRect ----------------------------------------------------- */
 
-static PyObject*
-ccircle_window_drawrect ( ccircle_window_t* self, PyObject* args )
-{
+static PyObject* CC_Window_DrawRect ( CC_Window* self, PyObject* args ) {
   float x, y, sx, sy;
   float r = 1.0f;
   float g = 1.0f;
@@ -281,7 +274,8 @@ ccircle_window_drawrect ( ccircle_window_t* self, PyObject* args )
   if (!PyArg_ParseTuple(args, "ffff|ffff", &x, &y, &sx, &sy, &r, &g, &b, &a))
     return 0;
 
-  ccircle_window_setactive(self);
+  CC_Window_SetActive(self);
+  GL_CHECK;
   glColor4f(r, g, b, a);
   glBegin(GL_QUADS);
   glVertex2f(x, y);
@@ -289,14 +283,13 @@ ccircle_window_drawrect ( ccircle_window_t* self, PyObject* args )
   glVertex2f(x + sx, y + sy);
   glVertex2f(x, y + sy);
   glEnd();
+  GL_CHECK;
   Py_RETURN_NONE;
 }
 
 /* --- Window::drawTri ------------------------------------------------------ */
 
-static PyObject*
-ccircle_window_drawtri ( ccircle_window_t* self, PyObject* args )
-{
+static PyObject* CC_Window_DrawTri ( CC_Window* self, PyObject* args ) {
   float x1, y1;
   float x2, y2;
   float x3, y3;
@@ -307,21 +300,21 @@ ccircle_window_drawtri ( ccircle_window_t* self, PyObject* args )
   if (!PyArg_ParseTuple(args, "ffffff|ffff", &x1, &y1, &x2, &y2, &x3, &y3, &r, &g, &b, &a))
     return 0;
 
-  ccircle_window_setactive(self);
+  CC_Window_SetActive(self);
+  GL_CHECK;
   glColor4f(r, g, b, a);
   glBegin(GL_TRIANGLES);
   glVertex2f(x1, y1);
   glVertex2f(x2, y2);
   glVertex2f(x3, y3);
   glEnd();
+  GL_CHECK;
   Py_RETURN_NONE;
 }
 
 /* --- Window::getMousePos -------------------------------------------------- */
 
-static PyObject*
-ccircle_window_getmousepos ( ccircle_window_t* self, PyObject* args )
-{
+static PyObject* CC_Window_GetMousePos ( CC_Window* self, PyObject* args ) {
   if (!self) return 0;
   POINT p;
   GetCursorPos(&p);
@@ -331,9 +324,7 @@ ccircle_window_getmousepos ( ccircle_window_t* self, PyObject* args )
 
 /* --- Window::getSize ------------------------------------------------------ */
 
-static PyObject*
-ccircle_window_getsize ( ccircle_window_t* self, PyObject* args )
-{
+static PyObject* CC_Window_GetSize ( CC_Window* self, PyObject* args ) {
   if (!self) return 0;
   RECT rect;
   GetClientRect(self->hwnd, &rect);
@@ -342,9 +333,7 @@ ccircle_window_getsize ( ccircle_window_t* self, PyObject* args )
 
 /* --- Window::hideMouse ---------------------------------------------------- */
 
-static PyObject*
-ccircle_window_hidemouse ( ccircle_window_t* self, PyObject* args )
-{
+static PyObject* CC_Window_HideMouse ( CC_Window* self, PyObject* args ) {
   if (!self) return 0;
   while (ShowCursor(false) > 0) {}
   Py_RETURN_NONE;
@@ -352,17 +341,13 @@ ccircle_window_hidemouse ( ccircle_window_t* self, PyObject* args )
 
 /* --- Window::isOpen ------------------------------------------------------- */
 
-static PyObject*
-ccircle_window_isopen ( ccircle_window_t* self, PyObject* args )
-{
+static PyObject* CC_Window_IsOpen ( CC_Window* self, PyObject* args ) {
   return PyBool_FromLong(self->quit ? 0L : 1L);
 }
 
 /* --- Window::setSize ------------------------------------------------------ */
 
-static PyObject*
-ccircle_window_setsize ( ccircle_window_t* self, PyObject* args )
-{
+static PyObject* CC_Window_SetSize ( CC_Window* self, PyObject* args ) {
   int sx, sy;
   if (!PyArg_ParseTuple(args, "ii", &sx, &sy))
     return 0;
@@ -372,9 +357,7 @@ ccircle_window_setsize ( ccircle_window_t* self, PyObject* args )
 
 /* --- Window::showMouse ---------------------------------------------------- */
 
-static PyObject*
-ccircle_window_showmouse ( ccircle_window_t* self, PyObject* args )
-{
+static PyObject* CC_Window_ShowMouse ( CC_Window* self, PyObject* args ) {
   if (!self) return 0;
   while (ShowCursor(true) <= 0) {}
   Py_RETURN_NONE;
@@ -382,9 +365,7 @@ ccircle_window_showmouse ( ccircle_window_t* self, PyObject* args )
 
 /* --- Window::toggleMaximized ---------------------------------------------- */
 
-static PyObject*
-ccircle_window_togglemaximized ( ccircle_window_t* self, PyObject* args )
-{
+static PyObject* CC_Window_ToggleMaximized ( CC_Window* self, PyObject* args ) {
   if (!self) return 0;
   WINDOWPLACEMENT wndpl;
   GetWindowPlacement(self->hwnd, &wndpl);
@@ -397,9 +378,8 @@ ccircle_window_togglemaximized ( ccircle_window_t* self, PyObject* args )
 
 /* --- Window::update ------------------------------------------------------- */
 
-static PyObject*
-ccircle_window_update ( ccircle_window_t* self, PyObject* args )
-{
+static PyObject* CC_Window_Update ( CC_Window* self, PyObject* args ) {
+  CC_Keyboard_Update();
   MSG msg;
   while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
     if (msg.message == WM_QUIT) {
@@ -409,9 +389,11 @@ ccircle_window_update ( ccircle_window_t* self, PyObject* args )
     } else {
       TranslateMessage(&msg);
       DispatchMessage(&msg);
+      break;
     }
   }
 
+  GL_CHECK;
   HDC dc = GetDC(self->hwnd);
   wglMakeCurrent(dc, self->hglc);
   SwapBuffers(dc);
@@ -420,36 +402,35 @@ ccircle_window_update ( ccircle_window_t* self, PyObject* args )
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   ReleaseDC(self->hwnd, dc);
+  GL_CHECK;
 
   Py_RETURN_NONE;
 }
 
 /* -------------------------------------------------------------------------- */
 
-static PyMethodDef ccircle_window_methods[] = {
-  { "clear", (PyCFunction)ccircle_window_clear, METH_VARARGS, "Clear the entire window with the given color" },
-  { "drawCircle", (PyCFunction)ccircle_window_drawcircle, METH_VARARGS, "Draw a circle in the window" },
-  { "drawLine", (PyCFunction)ccircle_window_drawline, METH_VARARGS, "Draw a line in the window" },
-  { "drawPoint", (PyCFunction)ccircle_window_drawpoint, METH_VARARGS, "Draw a point in the window" },
-  { "drawRect", (PyCFunction)ccircle_window_drawrect, METH_VARARGS, "Draw a rectangle in the window" },
-  { "drawTri", (PyCFunction)ccircle_window_drawtri, METH_VARARGS, "Draw a triangle in the window" },
-  { "getMousePos", (PyCFunction)ccircle_window_getmousepos, METH_NOARGS, "Get the position of the mouse cursor relative to the window" },
-  { "getSize", (PyCFunction)ccircle_window_getsize, METH_NOARGS, "Get the size of window's drawable region" },
-  { "hideMouse", (PyCFunction)ccircle_window_hidemouse, METH_NOARGS, "Make the mouse cursor invisible inside the window" },
-  { "isOpen", (PyCFunction)ccircle_window_isopen, METH_NOARGS, "Return whether or not the window is still open" },
-  { "setSize", (PyCFunction)ccircle_window_setsize, METH_VARARGS, "Set the size of the window" },
-  { "showMouse", (PyCFunction)ccircle_window_showmouse, METH_NOARGS, "Make the mouse cursor visible inside the window" },
-  { "toggleMaximized", (PyCFunction)ccircle_window_togglemaximized, METH_NOARGS, "Toggle the window's maximized state" },
-  { "update", (PyCFunction)ccircle_window_update, METH_NOARGS, "Update the window, causing drawn elements to be shown" },
+static PyMethodDef methods[] = {
+  { "clear", (PyCFunction)CC_Window_Clear, METH_VARARGS, "Clear the entire window with the given color" },
+  { "drawCircle", (PyCFunction)CC_Window_DrawCircle, METH_VARARGS, "Draw a circle in the window" },
+  { "drawLine", (PyCFunction)CC_Window_DrawLine, METH_VARARGS, "Draw a line in the window" },
+  { "drawPoint", (PyCFunction)CC_Window_DrawPoint, METH_VARARGS, "Draw a point in the window" },
+  { "drawRect", (PyCFunction)CC_Window_DrawRect, METH_VARARGS, "Draw a rectangle in the window" },
+  { "drawTri", (PyCFunction)CC_Window_DrawTri, METH_VARARGS, "Draw a triangle in the window" },
+  { "getMousePos", (PyCFunction)CC_Window_GetMousePos, METH_NOARGS, "Get the position of the mouse cursor relative to the window" },
+  { "getSize", (PyCFunction)CC_Window_GetSize, METH_NOARGS, "Get the size of window's drawable region" },
+  { "hideMouse", (PyCFunction)CC_Window_HideMouse, METH_NOARGS, "Make the mouse cursor invisible inside the window" },
+  { "isOpen", (PyCFunction)CC_Window_IsOpen, METH_NOARGS, "Return whether or not the window is still open" },
+  { "setSize", (PyCFunction)CC_Window_SetSize, METH_VARARGS, "Set the size of the window" },
+  { "showMouse", (PyCFunction)CC_Window_ShowMouse, METH_NOARGS, "Make the mouse cursor visible inside the window" },
+  { "toggleMaximized", (PyCFunction)CC_Window_ToggleMaximized, METH_NOARGS, "Toggle the window's maximized state" },
+  { "update", (PyCFunction)CC_Window_Update, METH_NOARGS, "Update the window, causing drawn elements to be shown" },
   { 0 },
 };
 
-/* -------------------------------------------------------------------------- */
-
-static PyTypeObject ccircle_window_pytype = {
+static PyTypeObject CC_Window_PyType = {
   PyVarObject_HEAD_INIT(0, 0)
   "ccircle.Window",
-  sizeof(ccircle_window_t),
+  sizeof(CC_Window),
   0,                                  /* tp_itemsize */
   0,                                  /* tp_dealloc */
   0,                                  /* tp_print */
@@ -474,7 +455,7 @@ static PyTypeObject ccircle_window_pytype = {
   0,                                  /* tp_weaklistoffset */
   0,                                  /* tp_iter */
   0,                                  /* tp_iternext */
-  ccircle_window_methods,             /* tp_methods */
+  methods,                            /* tp_methods */
   0,                                  /* tp_members */
   0,                                  /* tp_getset */
   0,                                  /* tp_base */
@@ -482,18 +463,16 @@ static PyTypeObject ccircle_window_pytype = {
   0,                                  /* tp_descr_get */
   0,                                  /* tp_descr_set */
   0,                                  /* tp_dictoffset */
-  (initproc)ccircle_window_init,      /* tp_init */
+  (initproc)CC_Window_Init,           /* tp_init */
   0,                                  /* tp_alloc */
   0,                                  /* tp_new */
 };
 
 /* -------------------------------------------------------------------------- */
 
-void ccircle_init_window ( PyObject* self )
-{
-  ccircle_window_pytype.tp_new = PyType_GenericNew;
-  if (PyType_Ready(&ccircle_window_pytype) < 0)
-    Fatal("Failed to create Window type");
+void CC_Init_Window ( PyObject* self ) {
+  CC_Window_PyType.tp_new = PyType_GenericNew;
+  if (PyType_Ready(&CC_Window_PyType) < 0) Fatal("Failed to create Window type");
   Py_INCREF(self);
-  PyModule_AddObject(self, "Window", (PyObject*)&ccircle_window_pytype);
+  PyModule_AddObject(self, "Window", (PyObject*)&CC_Window_PyType);
 }
